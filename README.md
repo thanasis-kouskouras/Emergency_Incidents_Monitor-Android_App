@@ -42,7 +42,7 @@ When new incidents are detected in Central Macedonia, users receive immediate pu
 
 | Website Integration | App Information |
 |:---:|:---:|
-| <img src="screenshots/scroll_button.jfif" alt="Website View" width="250"/> | <img src="screenshots/info.jfif" alt="App Info" width="250"/> |
+| <img src="screenshots/scroll_button.jfif" alt="Website View" width="250"/> | <img src="screenshots/about.jfif" alt="App Info" width="250"/> |
 | **Full Website Access** | **About & Settings** |
 | Complete Fire Service website integration with scroll-to-top functionality | App details, version info, and developer contact information |
 
