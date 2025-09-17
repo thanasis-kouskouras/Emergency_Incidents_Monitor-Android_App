@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#B71C1C</color>
+    <color name="colorPrimaryVariant">#d9534f</color>
+    <color name="colorOnPrimary">#121212</color>
+
+    <color name="colorBackground">#121212</color>
+    <color name="colorOnBackground">#121212</color>
+
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorAppRed">#d9534f</color>
+
+    <color name="incident_item_background">#d9534f</color>
+    <color name="incident_item_text_color">#FFFFFF</color>
+</resources>
