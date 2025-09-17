@@ -51,7 +51,7 @@ When new incidents are detected in Central Macedonia, users receive immediate pu
 ## Download & Installation
 
 ### Direct APK Download
-[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/yourusername/FireService/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/thanasis-kouskouras/Emergency_Incidents_Monitor-Android_App/releases/latest/download/fireservice-v1_3.apk)
 
 ### Installation Steps
 1. **Download APK** from releases or build from source
