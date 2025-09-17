@@ -69,8 +69,8 @@ When new incidents are detected in Central Macedonia, users receive immediate pu
 
 ## Technical Details
 
-- **Target Region**: Central Macedonia (Περιφέρεια Κεντρικής Μακεδονίας)
-- **Data Source**: [Official Fire Service Website](https://museum.fireservice.gr/symvanta/)
+- **Target Region**: Central Macedonia, Greece (ΠΕΡΙΦΕΡΕΙΑ ΚΕΝΤΡΙΚΗΣ ΜΑΚΕΔΟΝΙΑΣ)
+- **Data Source**: [Official Fire Service Website](https://museum.fireservice.gr/symvanta/) (Emergency Incidents Portal)
 - **Check Interval**: 15 minutes (Android WorkManager optimized)
 - **Minimum Android Version**: API 24 (Android 7.0+)
 - **Target SDK**: API 35 (Android 15)
