@@ -37,28 +37,20 @@ public class IncidentsAdapter extends RecyclerView.Adapter<IncidentsAdapter.Inci
             originalDescription = "";
         }
 
-        String modifiedDescription = originalDescription; // Αρχικά, είναι το ίδιο
+        String modifiedDescription = originalDescription; 
 
-        // Βρες την τελευταία αλλαγή γραμμής για να εντοπίσεις την αρχή της τελευταίας γραμμής
+        
         int lastNewlineIndexOriginal = originalDescription.lastIndexOf('\n');
 
         if (lastNewlineIndexOriginal != -1 && lastNewlineIndexOriginal < originalDescription.length() - 1) {
-            // Υπάρχει τουλάχιστον μία αλλαγή γραμμής και δεν είναι ο τελευταίος χαρακτήρας
-            // (δηλαδή, υπάρχει τουλάχιστον δύο γραμμές κειμένου)
+            String partBeforeLastLine = originalDescription.substring(0, lastNewlineIndexOriginal);  
+            String lastLine = originalDescription.substring(lastNewlineIndexOriginal + 1);    
 
-            // Χώρισε το string στο σημείο της τελευταίας αλλαγής γραμμής
-            String partBeforeLastLine = originalDescription.substring(0, lastNewlineIndexOriginal); // Μέχρι (αλλά όχι συμπεριλαμβανομένου) του τελευταίου '\n'
-            String lastLine = originalDescription.substring(lastNewlineIndexOriginal + 1);    // Το κείμενο μετά το τελευταίο '\n'
-
-            // Ανακατασκεύασε το string με μια επιπλέον κενή γραμμή
-            modifiedDescription = partBeforeLastLine + "\n\n" + lastLine; // Πρόσθεσε δύο '\n'
+            modifiedDescription = partBeforeLastLine + "\n\n" + lastLine; 
         }
-        // Αν δεν υπάρχει '\n' (μία μόνο γραμμή) ή αν το '\n' είναι ο τελευταίος χαρακτήρας,
-        // δεν κάνουμε καμία τροποποίηση για προσθήκη κενής γραμμής, καθώς δεν υπάρχει "προτελευταία" γραμμή με την ίδια έννοια.
 
         SpannableString spannableDescription = new SpannableString(modifiedDescription);
 
-        // Η λογική για το bold παραμένει ίδια, αλλά τώρα λειτουργεί πάνω στο modifiedDescription
         int lastNewlineIndexModified = modifiedDescription.lastIndexOf('\n');
         int startIndexForBold = -1;
 
@@ -79,7 +71,6 @@ public class IncidentsAdapter extends RecyclerView.Adapter<IncidentsAdapter.Inci
 
         holder.textViewDescription.setText(spannableDescription);
         holder.textViewLastUpdate.setText(currentIncident.getLastUpdateTime());
-        // ...
     }
 
     @Override
@@ -89,19 +80,17 @@ public class IncidentsAdapter extends RecyclerView.Adapter<IncidentsAdapter.Inci
 
     public void setIncidents(List<Incident> incidents) {
         this.incidentList = incidents;
-        notifyDataSetChanged(); // Απλή ανανέωση, για μεγαλύτερες λίστες χρησιμοποίησε DiffUtil
+        notifyDataSetChanged(); 
     }
 
     static class IncidentViewHolder extends RecyclerView.ViewHolder {
         private final TextView textViewDescription;
         private final TextView textViewLastUpdate;
-        // private final TextView textViewIdDebug; // Αν το έχεις στο layout
 
         public IncidentViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewDescription = itemView.findViewById(R.id.textView_incident_description);
             textViewLastUpdate = itemView.findViewById(R.id.textView_incident_last_update);
-            // textViewIdDebug = itemView.findViewById(R.id.textView_incident_id_debug);
         }
     }
 }

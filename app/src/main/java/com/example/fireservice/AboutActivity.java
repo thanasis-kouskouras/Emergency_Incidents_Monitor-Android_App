@@ -30,11 +30,11 @@ public class AboutActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar_about);
         setSupportActionBar(toolbar);
 
-        // Ενεργοποίηση του κουμπιού (βελάκι πίσω) και ορισμός τίτλου
+        
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // Εμφάνισε το βελάκι
-            getSupportActionBar().setDisplayShowHomeEnabled(true);  // Διασφάλισε ότι εμφανίζεται
-            getSupportActionBar().setTitle("Σχετικά με FireService"); // Ή όποιον τίτλο θέλεις
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); 
+            getSupportActionBar().setDisplayShowHomeEnabled(true);  
+            getSupportActionBar().setTitle("Σχετικά με FireService"); 
         }
 
         TextView textView = findViewById(R.id.text_about);

@@ -32,7 +32,7 @@
         <activity
             android:name=".ActiveIncidentsActivity"
             android:label="Ενεργά Συμβάντα"
-            android:parentActivityName=".MainActivity" />  <!-- Προαιρετικά, για up navigation -->
+            android:parentActivityName=".MainActivity" />  
 
         <service
             android:name="androidx.work.impl.background.systemjob.SystemJobService"

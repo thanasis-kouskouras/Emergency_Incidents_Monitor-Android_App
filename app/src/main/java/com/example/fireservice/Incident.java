@@ -3,11 +3,10 @@ package com.example.fireservice;
 import java.util.Objects;
 
 public class Incident {
-    String id; // Μοναδικό ID που θα φτιάξουμε (MD5 hash)
-    String description; // Πλήρης περιγραφή από το πρώτο <td> (με newlines)
-    String lastUpdateTime; // Η συμβολοσειρά "Τελευταία Ενημέρωση..." (για πληροφορία, όχι για ID)
+    String id; 
+    String description; 
+    String lastUpdateTime; 
 
-    // Default constructor για Gson (αν και δεν είναι πάντα απαραίτητος για serialization, καλό είναι να υπάρχει)
     public Incident() {}
 
     public Incident(String id, String description, String lastUpdateTime) {
@@ -45,17 +44,16 @@ public class Incident {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Incident incident = (Incident) o;
-        return Objects.equals(id, incident.id); // Σύγκριση μόνο βάσει ID
+        return Objects.equals(id, incident.id); 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id); // Hashcode μόνο βάσει ID
+        return Objects.hash(id); 
     }
 
     @Override
     public String toString() {
-        // Κάνε την περιγραφή πιο σύντομη για το logging
         String shortDescription = description != null && description.length() > 60
                 ? description.substring(0, 60) + "..."
                 : description;

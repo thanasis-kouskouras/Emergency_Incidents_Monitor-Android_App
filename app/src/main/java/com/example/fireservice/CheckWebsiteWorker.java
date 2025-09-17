@@ -30,17 +30,15 @@ public class CheckWebsiteWorker extends Worker {
     public static final String WEBSITE_URL = "https://museum.fireservice.gr/symvanta/";
     public static final String TARGET_REGION = "ΠΕΡΙΦΕΡΕΙΑ ΚΕΝΤΡΙΚΗΣ ΜΑΚΕΔΟΝΙΑΣ";
 
-    // SharedPreferences Names and Keys
     private static final String NOTIFICATION_PREFS_NAME = "NotificationStatePrefs";
-    private static final String NOTIFIED_INCIDENTS_KEY = "notified_incidents_list"; // Άλλαξα από _ids σε _list για σαφήνεια
+    private static final String NOTIFIED_INCIDENTS_KEY = "notified_incidents_list";
 
-    private static final String ACTIVE_INCIDENTS_PREFS_NAME = "ActiveIncidentsPrefs"; // Για την ActiveIncidentsActivity (αν την φτιάξεις)
+    private static final String ACTIVE_INCIDENTS_PREFS_NAME = "ActiveIncidentsPrefs"; 
     private static final String ACTIVE_KM_INCIDENTS_KEY = "active_km_incidents_list";
 
 
     public CheckWebsiteWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
-        // Δημιούργησε το κανάλι ειδοποιήσεων όταν αρχικοποιείται ο worker, για σιγουριά.
         NotificationHelper.createNotificationChannel(getApplicationContext());
     }
 
@@ -54,9 +52,6 @@ public class CheckWebsiteWorker extends Worker {
 
         if (!notificationsEnabled) {
             Log.i(TAG, "Notifications are disabled by the user. Worker will not proceed with parsing or notifying.");
-            // Αν οι ειδοποιήσεις είναι απενεργοποιημένες, ίσως να μην θέλεις καν να τρέχει ο worker.
-            // Θα μπορούσες να ακυρώσεις τον worker από την MainActivity όταν το switch είναι off.
-            // Προς το παρόν, απλά δεν κάνει τίποτα.
             return Result.success();
         }
 
@@ -81,7 +76,6 @@ public class CheckWebsiteWorker extends Worker {
                 Element descriptionTd = panelHeading.selectFirst("table td:first-child");
                 if (descriptionTd == null) continue;
 
-                // html() για να κρατήσει τα <br> tags, μετά αντικατάσταση με newline, και μετά Jsoup.parse για καθαρισμό.
                 String rawHtmlDescription = descriptionTd.html();
                 String descriptionWithNewlines = rawHtmlDescription.replace("<br>", "BR_TAG_TEMP").replace("<BR>", "BR_TAG_TEMP");
                 String plainTextDescription = Jsoup.parse(descriptionWithNewlines).text().replace("BR_TAG_TEMP", "\n").trim();
@@ -91,15 +85,13 @@ public class CheckWebsiteWorker extends Worker {
                 if (tds.size() > 1) {
                     String startTimeFullText = tds.get(1).text();
                     if (startTimeFullText.toUpperCase().contains("ΕΝΑΡΞΗ")) {
-                        // Προσπάθεια να πάρουμε μόνο την ημερομηνία/ώρα
                         String[] parts = startTimeFullText.split("ΕΝΑΡΞΗ");
                         if (parts.length > 1) {
-                            String datePart = parts[1].trim().split(" ")[0]; // Παίρνει το πρώτο στοιχείο μετά το "ΕΝΑΡΞΗ "
+                            String datePart = parts[1].trim().split(" ")[0]; /
                             if (datePart.matches("\\d{2}/\\d{2}/\\d{4}")) {
                                 startTimeClean = datePart;
                             } else {
-                                // Fallback αν δεν είναι ακριβώς έτσι, μπορεί να χρειάζεται πιο πολύπλοκο parsing
-                                startTimeClean = parts[1].trim(); // Κράτα ό,τι βρήκες μετά το "ΕΝΑΡΞΗ"
+                                startTimeClean = parts[1].trim();
                             }
                         }
                     }
@@ -135,7 +127,7 @@ public class CheckWebsiteWorker extends Worker {
                 }
             }
 
-            // Αποθήκευση της τρέχουσας λίστας ενεργών συμβάντων της Κ.Μ. (αν τη χρειάζεσαι για UI)
+            
             saveActiveKmIncidentsForUI(currentActiveKmIncidents);
 
             if (!newIncidentsForNotification.isEmpty()) {
@@ -145,7 +137,7 @@ public class CheckWebsiteWorker extends Worker {
                 if (newIncidentsForNotification.size() == 1) {
                     Incident singleNewIncident = newIncidentsForNotification.get(0);
                     notificationTitle = "Νέο Συμβάν στην Κ. Μακεδονία";
-                    // Πάρε τις πρώτες 2 γραμμές της περιγραφής για το κείμενο
+        
                     String[] descLines = singleNewIncident.getDescription().split("\n");
                     notificationText = descLines[0];
                     if (descLines.length > 1) {
@@ -159,35 +151,30 @@ public class CheckWebsiteWorker extends Worker {
                 NotificationHelper.showNotification(getApplicationContext(), notificationTitle, notificationText, ActiveIncidentsActivity.class);
                 Log.i(TAG, "Notification sent for " + newIncidentsForNotification.size() + " new incident(s).");
 
-                // Ενημέρωσε τη λίστα των συμβάντων για τα οποία έχει σταλεί ειδοποίηση
+                
                 updatePreviouslyNotifiedIncidentsList(newIncidentsForNotification, previouslyNotifiedIncidents);
             } else {
                 Log.i(TAG, "No new incidents matching criteria for notification.");
             }
 
-            // Καθάρισμα παλιών συμβάντων από τη λίστα "previouslyNotified" (προαιρετικό αλλά καλό)
-            // Αν ένα συμβάν δεν είναι πλέον ενεργό (δεν βρέθηκε στο currentActiveKmIncidents),
-            // αλλά υπάρχει στο previouslyNotifiedIncidents, μπορείς να το αφαιρέσεις.
-            // Αυτό κρατάει τη λίστα πιο καθαρή.
             cleanupOldNotifiedIncidents(currentActiveKmIncidents, previouslyNotifiedIncidents);
-
 
             Log.d(TAG, "CheckWebsiteWorker: Task finished successfully.");
             return Result.success();
 
         } catch (IOException e) {
             Log.e(TAG, "IOException in CheckWebsiteWorker (Network issue?): ", e);
-            return Result.retry(); // Δοκίμασε ξανά αν είναι δικτυακό πρόβλημα
+            return Result.retry(); 
         } catch (Exception e) {
             Log.e(TAG, "Generic Exception in CheckWebsiteWorker: ", e);
-            return Result.failure(); // Μη δοκιμάσεις ξανά αν είναι άλλο σφάλμα
+            return Result.failure(); 
         }
     }
 
     private String generateStableIncidentId(String description, String startTime) {
         String normalizedDescriptionFirstLine = "NO_DESC";
         if (description != null && !description.isEmpty()) {
-            normalizedDescriptionFirstLine = description.split("\n")[0].toLowerCase() // Πάρε την πρώτη γραμμή για το ID
+            normalizedDescriptionFirstLine = description.split("\n")[0].toLowerCase() 
                     .replaceAll("\\s+", " ")
                     .replaceAll("[^a-zA-Z0-9α-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ\\s]", "")
                     .trim();
@@ -202,7 +189,6 @@ public class CheckWebsiteWorker extends Worker {
             for (byte b : array) {
                 sb.append(String.format("%02x", b));
             }
-            // Log.v(TAG, "Generated ID: " + sb.toString() + " from Key: " + combinedKey);
             return sb.toString();
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             Log.e(TAG, "Error generating MD5 for ID, falling back to combinedKey hashcode: " + combinedKey, e);
@@ -213,15 +199,13 @@ public class CheckWebsiteWorker extends Worker {
     private boolean isNewAndNeedsNotification(Incident currentIncident, List<Incident> previouslyNotifiedIncidents) {
         for (Incident notifiedIncident : previouslyNotifiedIncidents) {
             if (notifiedIncident.getId().equals(currentIncident.getId())) {
-                return false; // Βρέθηκε, άρα δεν είναι νέο
+                return false; 
             }
         }
-        return true; // Δεν βρέθηκε, άρα είναι νέο
+        return true; 
     }
 
     private void updatePreviouslyNotifiedIncidentsList(List<Incident> newIncidents, List<Incident> previouslyNotifiedIncidents) {
-        // Πρόσθεσε τα νέα συμβάντα στη λίστα των "previously notified"
-        // Χρησιμοποίησε ένα αντίγραφο για να μην τροποποιήσεις τη λίστα που χρησιμοποιείται για έλεγχο μέσα στον βρόχο.
         List<Incident> updatedList = new ArrayList<>(previouslyNotifiedIncidents);
         updatedList.addAll(newIncidents);
 
@@ -250,12 +234,12 @@ public class CheckWebsiteWorker extends Worker {
         return new ArrayList<>();
     }
 
-    // Μέθοδος για καθαρισμό παλιών συμβάντων από τη λίστα previouslyNotifiedIncidents
+    
     private void cleanupOldNotifiedIncidents(List<Incident> currentActiveIncidents, List<Incident> previouslyNotifiedIncidents) {
         List<Incident> incidentsToKeep = new ArrayList<>();
         boolean changed = false;
 
-        // Κράτα μόνο αυτά που είναι ακόμα ενεργά
+        
         for (Incident notified : previouslyNotifiedIncidents) {
             boolean isActive = false;
             for (Incident active : currentActiveIncidents) {
@@ -267,7 +251,7 @@ public class CheckWebsiteWorker extends Worker {
             if (isActive) {
                 incidentsToKeep.add(notified);
             } else {
-                changed = true; // Βρέθηκε ένα που δεν είναι πλέον ενεργό
+                changed = true; 
                 Log.d(TAG, "Removing inactive incident from notified list: " + notified.getId());
             }
         }
@@ -284,8 +268,6 @@ public class CheckWebsiteWorker extends Worker {
     }
 
 
-    // Μέθοδος για αποθήκευση όλων των ενεργών συμβάνων της Κ.Μ. (για ένα μελλοντικό UI)
-    // Δεν καλείται ακόμα, αλλά είναι έτοιμη.
     private void saveActiveKmIncidentsForUI(List<Incident> incidents) {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(ACTIVE_INCIDENTS_PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();

@@ -49,12 +49,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public static final String UNIQUE_WORK_NAME = "CheckWebsitePeriodicWork";
 
-    // Νέος τρόπος για αίτηση αδειών
+    
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     Log.d(TAG, "POST_NOTIFICATIONS permission granted.");
-                    // Αν ο χρήστης μόλις έδωσε την άδεια και το switch είναι ON, ξεκίνα τον worker
                     if (switchNotifications.isChecked()) {
                         startPeriodicWorker();
                         Toast.makeText(this, "Οι ειδοποιήσεις ενεργοποιήθηκαν.", Toast.LENGTH_SHORT).show();
@@ -62,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.w(TAG, "POST_NOTIFICATIONS permission denied.");
                     Toast.makeText(this, "Η άδεια για ειδοποιήσεις απορρίφθηκε. Οι ειδοποιήσεις δεν θα λειτουργούν.", Toast.LENGTH_LONG).show();
-                    // Αν η άδεια απορρίφθηκε, βεβαιώσου ότι το switch είναι OFF
                     if (switchNotifications.isChecked()) {
                         switchNotifications.setChecked(false);
                         prefs.edit().putBoolean("notifications_enabled", false).apply();
@@ -80,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Δημιούργησε το κανάλι ειδοποιήσεων όταν ξεκινά η Activity (καλή πρακτική)
         NotificationHelper.createNotificationChannel(this);
 
         myWebView = findViewById(R.id.webview);
@@ -89,19 +86,15 @@ public class MainActivity extends AppCompatActivity {
 
         myWebView.setWebViewClient(new WebViewClient());
         myWebView.getSettings().setJavaScriptEnabled(true);
-        myWebView.loadUrl(CheckWebsiteWorker.WEBSITE_URL); // Χρησιμοποίησε τη σταθερά από τον Worker
+        myWebView.loadUrl(CheckWebsiteWorker.WEBSITE_URL); 
 
         switchNotifications = findViewById(R.id.switchNotifications);
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
 
         boolean isEnabled = prefs.getBoolean("notifications_enabled", false);
 
-
-        // Ζήτα άδεια για ειδοποιήσεις αν χρειάζεται (Android 13+) και ρύθμισε το switch
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                // Αν η άδεια δεν έχει δοθεί ΚΑΙ το switch ήταν αποθηκευμένο ως ON, το κάνουμε OFF
-                // γιατί δεν μπορεί να λειτουργήσει χωρίς την άδεια.
                 if (isEnabled) {
                     Log.w(TAG, "Notifications were enabled in prefs, but permission is missing. Disabling notifications.");
                     isEnabled = false;
@@ -144,15 +137,11 @@ public class MainActivity extends AppCompatActivity {
             prefs.edit().putBoolean("notifications_enabled", isChecked).apply();
 
             if (isChecked) {
-                // Έλεγχος αν έχει δοθεί η άδεια ΠΡΙΝ ξεκινήσει ο worker (για Android 13+)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                         ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                     Log.i(TAG, "Notification switch ON, but permission POST_NOTIFICATIONS not granted. Requesting permission.");
-                    requestNotificationPermission(); // Ζήτα την άδεια. Ο worker θα ξεκινήσει από το callback αν δοθεί.
-                    // Μην ξεκινήσεις τον worker εδώ αν η άδεια δεν έχει δοθεί.
-                    // Επίσης, γύρνα το switch προσωρινά σε off μέχρι να δούμε την απάντηση για την άδεια.
-                    // switchNotifications.setChecked(false); // Ή το αφήνεις on και ο χρήστης θα δει το dialog.
-                    return; // Ο χειρισμός θα γίνει στο callback του requestPermissionLauncher
+                    requestNotificationPermission(); 
+                    return; 
                 }
                 startPeriodicWorker();
                 Toast.makeText(this, "Οι ειδοποιήσεις ενεργοποιήθηκαν.", Toast.LENGTH_SHORT).show();
@@ -162,17 +151,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Αν οι ειδοποιήσεις είναι ήδη ενεργοποιημένες κατά την εκκίνηση (και υπάρχει άδεια),
-        // βεβαιώσου ότι ο worker είναι προγραμματισμένος.
+        
         if (isEnabled) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                     ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                // Μην ξεκινήσεις αν δεν υπάρχει άδεια, παρόλο που το prefs λέει true.
-                // Ο παραπάνω χειρισμός στο onCreate θα το έχει ήδη διορθώσει.
                 Log.w(TAG, "Prefs say enabled, but no permission. Worker NOT started on init.");
             } else {
                 Log.d(TAG, "Notifications were enabled on init. Ensuring worker is scheduled.");
-                startPeriodicWorker(); // Χρησιμοποίησε την KEEP για να μην τον ξαναφτιάχνει αν υπάρχει.
+                startPeriodicWorker(); 
             }
         }
     }
@@ -183,16 +169,11 @@ public class MainActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "POST_NOTIFICATIONS permission already granted.");
-                // Άδεια ήδη υπάρχει
             } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                // Εμφάνισε ένα UI που εξηγεί γιατί χρειάζεσαι την άδεια (π.χ. ένα AlertDialog)
-                // και μετά κάλεσε το requestPermissionLauncher.launch(...)
                 Log.i(TAG, "Showing rationale for POST_NOTIFICATIONS permission.");
                 Toast.makeText(this, "Η εφαρμογή χρειάζεται άδεια για ειδοποιήσεις ώστε να σας ενημερώνει για νέα συμβάντα.", Toast.LENGTH_LONG).show();
-                // Αφού δείξεις το rationale, κάνε την αίτηση
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             } else {
-                // Απευθείας αίτηση της άδειας
                 Log.d(TAG, "Requesting POST_NOTIFICATIONS permission.");
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
@@ -202,19 +183,18 @@ public class MainActivity extends AppCompatActivity {
     private void startPeriodicWorker() {
         Log.d(TAG, "Attempting to start periodic worker.");
         Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED) // Απαίτηση για σύνδεση στο δίκτυο
+                .setRequiredNetworkType(NetworkType.CONNECTED) 
                 .build();
 
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
                 CheckWebsiteWorker.class,
-                15, TimeUnit.MINUTES) // Η συχνότητα που είχες
+                15, TimeUnit.MINUTES) 
                 .setConstraints(constraints)
-                // .setInitialDelay(1, TimeUnit.MINUTES) // Προαιρετικά, για να μην τρέξει αμέσως την 1η φορά
                 .build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 UNIQUE_WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP, // Κράτα τον υπάρχοντα worker αν υπάρχει ήδη με αυτό το όνομα
+                ExistingPeriodicWorkPolicy.KEEP, 
                 workRequest);
         Log.i(TAG, "Periodic worker enqueued with name: " + UNIQUE_WORK_NAME);
     }
@@ -235,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        View anchorView = findViewById(R.id.toolbar); // Για τη δόνηση
+        View anchorView = findViewById(R.id.toolbar); 
 
         if (id == R.id.action_refresh) {
             if (anchorView != null) {
@@ -264,11 +244,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
-    // Η παλιά μέθοδος onRequestPermissionsResult δεν χρειάζεται πλέον
-    // αφού χρησιμοποιούμε το ActivityResultLauncher.
-    /*
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) { ... }
-    */
 }
