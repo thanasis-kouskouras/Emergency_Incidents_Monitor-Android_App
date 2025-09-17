@@ -1,4 +1,4 @@
-# FireService - Android App
+# 🚨 FireService - Android App 
 
 <div align="center">
   <h3>Central Macedonia Emergency Incident Monitor</h3>
